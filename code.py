@@ -1,13 +1,11 @@
 import curses
+import sys
 
 screen = curses.initscr()
 curses.raw()
 curses.noecho()
 screen.keypad(True)
 screen.nodelay(1)
-
-def ctrl(c): return ((c) & 0x1f)
-
 COLS = 80
 ROWS = 24
 usrx = 0
@@ -15,6 +13,8 @@ curx = 0
 cury = 0
 curs = 0
 buff = []
+
+def ctrl(c): return ((c) & 0x1f)
 
 def move_right():
   global curs, curx, cury
@@ -39,49 +39,69 @@ def move_left():
         while(buff[count] != ord('\n')): count -= 1
         curx = curs - count - 1
 
-while(True):
-  c = screen.getch()
-  if (c == -1): continue
-  if c == ctrl(ord('q')): break
-  elif c == curses.KEY_LEFT:
+def move_up():
+  move_home()
+  move_left()
+  while curx > usrx:
     move_left()
-    usrx = curx
-  elif c == curses.KEY_RIGHT:
+
+def move_down():
+  move_end()
+  move_right()
+  while curx < usrx:
+    if curs == len(buff): break
+    if buff[curs] == ord('\n'): break
     move_right()
-    usrx = curx
-  elif c == curses.KEY_UP:
-    if cury:
-      oldx = curx
-      oldy = cury
-      move_left()
-      while(oldx != curx):
-        move_left()
-        if cury < oldy and curx < oldx: break
-        if curx == usrx and cury != oldy: break
-  elif c == curses.KEY_DOWN:
-    if (1):
-      oldx = curx
-      oldy = cury
-      move_right()
-      while(oldx != curx):
-        move_right()
-        if cury > oldy and buff[curs] == ord('\n'): break
-      if curx != usrx:
-        pass
-        #if buff[curs] != ord('\n'):
-        #  while (curx != usrx): move_right();
 
-        
-  elif c == curses.KEY_BACKSPACE:
+def move_home():
+  global usrx
+  while(True):
+    if curs == 0:
+      usrx = curs
+      break
+    elif buff[curs-1] == ord('\n'): break
     move_left()
-    if len(buff): del buff[curs]
-    screen.clear()
-  else:
-    if c == ord('\n'): cury += 1; curx = -1;
-    buff.insert(curs, c); curs += 1
-    curx += 1
-    usrx = curx
 
+def move_end():
+  global usrx
+  while(True):
+    if curs == len(buff):
+      usrx = curx
+      break
+    if buff[curs] == ord('\n'): break
+    move_right()
+
+def delete_char():
+  move_left()
+  if len(buff): del buff[curs]
+  screen.clear()
+
+def insert_char(c):
+  global curs, curx, cury, usrx
+  if c == ord('\n'): cury += 1; curx = -1;
+  buff.insert(curs, c); curs += 1
+  curx += 1
+  usrx = curx
+
+def exit():
+  curses.endwin()
+  sys.exit(0)
+
+def read_keyboard():
+  global usrx
+  c = -1
+  while (c == -1): c = screen.getch()
+  if c == ctrl(ord('q')): exit()
+  elif c == curses.KEY_HOME: move_home(); usrx = curx
+  elif c == curses.KEY_END: move_end(); usrx = curx
+  elif c == curses.KEY_LEFT: move_left(); usrx = curx
+  elif c == curses.KEY_RIGHT: move_right(); usrx = curx
+  elif c == curses.KEY_UP: move_up()
+  elif c == curses.KEY_DOWN: move_down()
+  elif c == curses.KEY_BACKSPACE: delete_char()
+  else: insert_char(c)
+
+def update_screen():
   screen.move(0, 0)
   curses.curs_set(0)
   [screen.addch(c) for c in buff]
@@ -89,5 +109,8 @@ while(True):
   curses.curs_set(1)
   screen.refresh()
 
-curses.endwin()
+while(True):
+  read_keyboard()
+  update_screen()
+
 
