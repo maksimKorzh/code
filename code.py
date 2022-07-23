@@ -36,13 +36,27 @@ class Editor():
       self.curs -= 1
       if self.curx: self.curx -= 1
       else:
+        # TODO: fix freezing on first line bug!  
+        
+        
+        
         if self.cury > -1: self.cury -= 1
         count = self.curs - 1
-        while(self.buff[count] != ord('\n')): count -= 1
-        self.curx = self.curs - count - 1    
-        if self.cury == -1 and self.offy:
+        while self.buff[count] != ord('\n'): count -= 1;
+        self.curx = self.curs - count - 1
+        
+        if self.cury == 0 and not self.offy:
+          self.curx = self.curs
+        
+        if self.cury == -1 and self.offy > 1:
           self.cury += 1
           self.offy -= 1
+        
+        elif self.cury == -1 and self.offy <=1:
+          self.offy -= 1
+          self.cury += 1
+          self.curx = self.curs
+          #sys.exit()
 
   def move_up(self):
     self.move_home()
@@ -70,7 +84,11 @@ class Editor():
         self.cury -= 1
       self.move_down()
       count += 1
-
+  
+  def move_bottom(self):
+    while(self.curs <= len(self.buff) - 1):
+      self.page_down()
+  
   def move_home(self):
     while(True):
       if self.curs == 0:
@@ -137,6 +155,7 @@ class Editor():
     c = -1
     while (c == -1): c = self.screen.getch()
     if c == self.ctrl(ord('q')): self.exit()
+    elif c == 530: self.move_bottom()
     elif c == curses.KEY_HOME: self.move_home(); self.usrx = self.curx
     elif c == curses.KEY_END: self.move_end(); self.usrx = self.curx
     elif c == curses.KEY_LEFT: self.move_left(); self.usrx = self.curx
