@@ -123,19 +123,15 @@ class Editor():
       if self.cury < self.ROWS - 1: self.cury += 1
       self.curx = -1
       self.screen.clrtoeol()
+    
+    #if self.curx < self.COLS-1:
+    
+    
     self.buff.insert(self.curs, c); self.curs += 1
     self.curx += 1
     self.usrx = self.curx
 
   def print_buffer(self):
-    '''
-    start printing chars only when current
-    buffer row is >= than the row offset
-    stop printing rows when printed 24 rows
-    '''
-    
-    
-    
     rows = 0
     for c in self.buff:
       if rows >= self.offy and rows < self.ROWS + self.offy:
