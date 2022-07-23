@@ -77,6 +77,18 @@ class Editor():
       self.move_down()
       count += 1
   
+  def page_up(self):
+    if self.offy == 0:
+      while self.cury != 0: self.move_up()
+      self.move_home()
+      return
+    count = 0
+    while count != self.ROWS - 1 and self.offy:
+      self.offy -= 1
+      self.cury += 1
+      self.move_up()
+      count += 1
+
   def move_bottom(self):
     while(self.curs <= len(self.buff) - 1):
       self.page_down()
@@ -155,8 +167,8 @@ class Editor():
     elif c == curses.KEY_UP: self.move_up()
     elif c == curses.KEY_DOWN: self.move_down()
     elif c == curses.KEY_BACKSPACE: self.delete_char()
-    #elif c == curses.KEY_PPAGE: self.scroll_up()
     elif c == curses.KEY_NPAGE: self.page_down()
+    elif c == curses.KEY_PPAGE:self.page_up()
     else: self.insert_char(c)
 
   def open_file(self, filename):
