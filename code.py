@@ -88,10 +88,13 @@ class Editor():
       self.cury += 1
       self.move_up()
       count += 1
-
+  
   def move_bottom(self):
-    while(self.curs <= len(self.buff) - 1):
+    while self.curs <= len(self.buff) - 1:
       self.page_down()
+  
+  def move_top(self):
+    while self.curs: self.page_up()
   
   def move_home(self):
     while(True):
@@ -159,7 +162,6 @@ class Editor():
     c = -1
     while (c == -1): c = self.screen.getch()
     if c == self.ctrl(ord('q')): self.exit()
-    elif c == 530: self.move_bottom()
     elif c == curses.KEY_HOME: self.move_home(); self.usrx = self.curx
     elif c == curses.KEY_END: self.move_end(); self.usrx = self.curx
     elif c == curses.KEY_LEFT: self.move_left(); self.usrx = self.curx
@@ -169,6 +171,8 @@ class Editor():
     elif c == curses.KEY_BACKSPACE: self.delete_char()
     elif c == curses.KEY_NPAGE: self.page_down()
     elif c == curses.KEY_PPAGE:self.page_up()
+    elif c == 530: self.move_bottom()
+    elif c == 535: self.move_top()
     else: self.insert_char(c)
 
   def open_file(self, filename):
