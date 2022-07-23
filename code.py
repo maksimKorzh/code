@@ -29,7 +29,7 @@ class Editor():
       self.curs += 1;
     if self.cury == self.ROWS:
       self.cury -= 1
-      self.scroll_down()
+      self.offy += 1
 
   def move_left(self):
     if self.curs:
@@ -37,19 +37,13 @@ class Editor():
       if self.curx: self.curx -= 1
       else:
         if self.cury > -1: self.cury -= 1
-          
-        #if self.cury == 0:             
-        #  self.curx = self.curs
-        #else:
-          
-          
         count = self.curs - 1
         while(self.buff[count] != ord('\n')): count -= 1
-        self.curx = self.curs - count - 1
-    
+        self.curx = self.curs - count - 1    
         if self.cury == -1 and self.offy:
           self.cury += 1
-          self.scroll_up()
+          self.offy -= 1
+
   def move_up(self):
     self.move_home()
     self.move_left()
@@ -62,6 +56,20 @@ class Editor():
       if self.curs == len(self.buff): break
       if self.buff[self.curs] == ord('\n'): break
       self.move_right()
+  
+  def page_down(self):
+    if self.offy >= self.total_lines - self.ROWS - 1:
+      while self.cury != self.ROWS - 1:
+        self.move_down()
+      return
+    self.screen.clear()
+    count = 0
+    while count != self.ROWS - 1:
+      if self.offy <= self.total_lines - self.ROWS - 1:
+        self.offy += 1
+        self.cury -= 1
+      self.move_down()
+      count += 1
 
   def move_home(self):
     while(True):
@@ -112,9 +120,6 @@ class Editor():
       if c == ord('\n'):
         rows += 1
         if rows > self.ROWS + self.offy-1: break
-  
-  def scroll_up(self): self.offy -= 1
-  def scroll_down(self): self.offy += 1
 
   def update_screen(self):
     self.screen.move(0, 0)
@@ -139,8 +144,8 @@ class Editor():
     elif c == curses.KEY_UP: self.move_up()
     elif c == curses.KEY_DOWN: self.move_down()
     elif c == curses.KEY_BACKSPACE: self.delete_char()
-    elif c == curses.KEY_PPAGE: self.scroll_up()
-    elif c == curses.KEY_NPAGE: self.scroll_down()
+    #elif c == curses.KEY_PPAGE: self.scroll_up()
+    elif c == curses.KEY_NPAGE: self.page_down()
     else: self.insert_char(c)
 
   def open_file(self, filename):
