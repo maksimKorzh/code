@@ -36,14 +36,20 @@ class Editor():
       self.curs -= 1
       if self.curx: self.curx -= 1
       else:
-        if self.cury: self.cury -= 1
-        if self.cury == 0:             
-          self.curx = self.curs
-        else:
-          count = self.curs - 1
-          while(self.buff[count] != ord('\n')): count -= 1
-          self.curx = self.curs - count - 1
+        if self.cury > -1: self.cury -= 1
+          
+        #if self.cury == 0:             
+        #  self.curx = self.curs
+        #else:
+          
+          
+        count = self.curs - 1
+        while(self.buff[count] != ord('\n')): count -= 1
+        self.curx = self.curs - count - 1
     
+        if self.cury == -1 and self.offy:
+          self.cury += 1
+          self.scroll_up()
   def move_up(self):
     self.move_home()
     self.move_left()
