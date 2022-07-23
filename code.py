@@ -36,27 +36,19 @@ class Editor():
       self.curs -= 1
       if self.curx: self.curx -= 1
       else:
-        # TODO: fix freezing on first line bug!  
-        
-        
-        
         if self.cury > -1: self.cury -= 1
         count = self.curs - 1
         while self.buff[count] != ord('\n'): count -= 1;
         self.curx = self.curs - count - 1
-        
         if self.cury == 0 and not self.offy:
           self.curx = self.curs
-        
         if self.cury == -1 and self.offy > 1:
           self.cury += 1
           self.offy -= 1
-        
         elif self.cury == -1 and self.offy <=1:
           self.offy -= 1
           self.cury += 1
           self.curx = self.curs
-          #sys.exit()
 
   def move_up(self):
     self.move_home()
