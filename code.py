@@ -59,8 +59,8 @@ class Editor():
   
   def page_down(self):
     if self.offy >= self.total_lines - self.ROWS - 1:
-      while self.cury != self.ROWS - 1:
-        self.move_down()
+      while self.cury != self.ROWS - 1: self.move_down()
+      self.move_end()
       return
     self.screen.clear()
     count = 0
@@ -151,7 +151,7 @@ class Editor():
   def open_file(self, filename):
     with open('code.py') as f:
       content = f.read()
-      self.buff = [ord(c) for c in content]
+      self.buff = [ord(c) for c in content[:-1]]
       self.total_lines = len(content.split('\n')) - 1
     self.update_screen()
 
@@ -169,4 +169,4 @@ if __name__ == '__main__':
   editor.open_file('code.py')
   editor.start()
 
-
+# last commented line
