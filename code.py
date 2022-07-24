@@ -9,6 +9,7 @@ class Editor():
     self.screen.keypad(True)
     self.screen.nodelay(1)
     self.ROWS, self.COLS = self.screen.getmaxyx()
+    self.ROWS -= 2
     self.offx = 0
     self.offy = 0
     self.usrx = 0
@@ -20,7 +21,9 @@ class Editor():
     curses.noecho()
     curses.start_color()
     curses.init_pair(1, 15, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLACK, 15)
     self.screen.attron(curses.color_pair(1))
+    self.filename = 'New file'
   
   def insert_char(self, c):
     self.buff[self.cury].insert(self.curx, c)
@@ -96,6 +99,16 @@ class Editor():
     if self.cury >= self.offy + self.ROWS: self.offy = self.cury - self.ROWS+1
     if self.curx < self.offx: self.offx = self.curx
     if self.curx >= self.offx + self.COLS: self.offx = self.curx - self.COLS+1
+
+  def print_status_bar(self):
+    self.screen.attron(curses.color_pair(2))
+    status = self.filename + ' - ' + str(self.total_lines) + ' lines'
+    pos = 'Row ' + str(self.cury) + ', Col ' + str(self.curx)
+    while len(status) < self.COLS - len(pos)-1: status += ' '
+    status += pos + ' '
+    if len(status) > self.COLS: status = status[:self.COLS]
+    self.screen.addstr(self.ROWS, 0, status)
+    self.screen.attron(curses.color_pair(1))
   
   def print_buffer(self):
     for row in range(self.ROWS):
@@ -113,6 +126,7 @@ class Editor():
     self.screen.move(0, 0)
     self.scroll_buffer()
     self.print_buffer()
+    self.print_status_bar()
     curses.curs_set(0)
     self.screen.move(self.cury - self.offy, self.curx - self.offx)
     curses.curs_set(1)
@@ -144,6 +158,7 @@ class Editor():
       for row in content[:-1]:
         self.buff.append([ord(c) for c in row])
     self.total_lines = len(self.buff)
+    self.filename = filename
     self.update_screen()
   
   def save_file(self):
