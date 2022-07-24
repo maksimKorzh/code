@@ -1,4 +1,3 @@
-#!/bin/python3
 from curses import wrapper
 import curses
 import sys
@@ -8,7 +7,8 @@ class Editor():
     self.screen = curses.initscr()
     self.screen.keypad(True)
     self.screen.nodelay(1)
-    self.ROWS, self.COLS = self.screen.getmaxyx()
+    self.COLS = 80
+    self.ROWS = 24
     self.offx = 0
     self.offy = 0
     self.usrx = 0
@@ -59,37 +59,27 @@ class Editor():
       if row is not None and self.curx < len(row):
         self.curx += 1
         self.usrx += 1
-      elif row is not None and self.curx == len(row) and self.cury != self.total_lines-1:            # and here goes a very long comment just for testing purposes to make sure a disaster is not gonna happen if I scroll through it))))
+      elif row is not None and self.curx == len(row) and self.cury != self.total_lines-1:
         self.cury += 1
         self.curx = 0
     elif key == curses.KEY_UP:
       if self.cury != 0: self.cury -= 1
-      else: self.curx = 0
     elif key == curses.KEY_DOWN:
-      if self.cury < self.total_lines-1: self.cury += 1
-      else: self.curx = len(self.buff[self.cury])
+      if self.cury < self.total_lines-1:
+        self.cury += 1
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     rowlen = len(row) if row is not None else 0
     if self.curx > rowlen: self.curx = rowlen
   
-  def scroll_end(self):
-    while self.cury < self.total_lines-1:
-      self.scroll_page(curses.KEY_NPAGE)
-
-  def scroll_home(self):
-    while self.cury:
-      self.scroll_page(curses.KEY_PPAGE)
-
   def scroll_page(self, key):
-    count = 0
-    while count != self.ROWS:
-      if key == curses.KEY_NPAGE:
-        self.move_cursor(curses.KEY_DOWN)
-        if self.offy < self.total_lines - self.ROWS: self.offy += 1
-      elif key == curses.KEY_PPAGE:
-        self.move_cursor(curses.KEY_UP)
-        if self.offy: self.offy -= 1
-      count += 1
+    if key == curses.KEY_PPAGE: self.cury = self.offy
+    elif key == curses.KEY_NPAGE:
+      self.cury = self.offy + self.ROWS -1
+      if self.cury > self.total_lines: self.cury = self.total_lines
+    times = self.ROWS
+    while times:
+      self.move_cursor(curses.KEY_UP if key == curses.KEY_PPAGE else curses.KEY_DOWN)
+      times -= 1
 
   def scroll_buffer(self):
     if self.cury < self.offy: self.offy = self.cury
@@ -124,8 +114,8 @@ class Editor():
     while (c == -1): c = self.screen.getch()
     if c == ctrl(ord('q')): self.exit()
     if c == ctrl(ord('s')): self.save_file()
-    elif c == curses.KEY_HOME: self.curx = 0
-    elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
+    elif c == curses.KEY_HOME: pass
+    elif c == curses.KEY_END: pass
     elif c == curses.KEY_LEFT: self.move_cursor(c)
     elif c == curses.KEY_RIGHT: self.move_cursor(c)
     elif c == curses.KEY_UP: self.move_cursor(c)
@@ -133,8 +123,8 @@ class Editor():
     elif c == curses.KEY_BACKSPACE: self.delete_char()
     elif c == curses.KEY_NPAGE: self.scroll_page(c)
     elif c == curses.KEY_PPAGE: self.scroll_page(c)
-    elif c == 530: self.scroll_end()
-    elif c == 535: self.scroll_home()
+    elif c == 530: pass # ctrl-end
+    elif c == 535: pass # ctrl-home
     elif c == ord('\n'): self.insert_line()
     else: self.insert_char(c)
 
@@ -147,7 +137,7 @@ class Editor():
     self.update_screen()
   
   def save_file(self):
-    with open('code.py', 'w') as f:
+    with open('test.txt', 'w') as f:
       content = ''
       for row in self.buff:
         content += ''.join([chr(c) for c in row]) + '\n'
@@ -165,7 +155,7 @@ class Editor():
 if __name__ == '__main__':
   def main(stdscr):
     editor = Editor()
-    editor.open_file('code.py')
+    editor.open_file('test.txt')
     editor.start()
 
   wrapper(main)
