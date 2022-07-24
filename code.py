@@ -10,24 +10,32 @@ class Editor():
     self.screen.nodelay(1)
     self.ROWS, self.COLS = self.screen.getmaxyx()
     self.ROWS -= 2
-    self.offx = 0
-    self.offy = 0
-    self.usrx = 0
-    self.curx = 0
-    self.cury = 0
-    self.buff = []
-    self.total_lines = 0
     curses.raw()
     curses.noecho()
     curses.start_color()
-    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    try:
+      curses.init_pair(1, 15, 0)
+      curses.init_pair(2, 0, 15)
+    except:
+      curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+      curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
     self.screen.attron(curses.color_pair(1))
+
+  def reset(self):
+    self.curx = 0
+    self.cury = 0
+    self.offx = 0
+    self.offy = 0
+    self.usrx = 0
+    self.buff = []
+    self.total_lines = 0
     self.filename = 'Untitled.txt'
+    self.modified = 0
   
   def insert_char(self, c):
     self.buff[self.cury].insert(self.curx, c)
     self.curx += 1
+    self.modified += 1
   
   def delete_char(self):
     if self.curx:
@@ -40,6 +48,7 @@ class Editor():
       self.curx = len(self.buff[self.cury])
       self.buff[self.cury] += oldline
       self.total_lines -= 1
+    self.modified += 1
 
   def insert_line(self):
     oldline = self.buff[self.cury][self.curx:]
@@ -48,6 +57,7 @@ class Editor():
     self.curx = 0
     self.buff.insert(self.cury, [] + oldline)
     self.total_lines += 1
+    self.modified += 1
   
   def move_cursor(self, key):
     row = self.buff[self.cury] if self.cury < self.total_lines else None
@@ -99,16 +109,21 @@ class Editor():
     if self.cury >= self.offy + self.ROWS: self.offy = self.cury - self.ROWS+1
     if self.curx < self.offx: self.offx = self.curx
     if self.curx >= self.offx + self.COLS: self.offx = self.curx - self.COLS+1
+  
+  def clear_status_message(self):
+    self.screen.addstr(self.ROWS+1, 0, ' ' * (self.COLS-1))
 
   def print_status_bar(self):
     self.screen.attron(curses.color_pair(2))
     status = self.filename + ' - ' + str(self.total_lines) + ' lines'
+    status += ' [modified]' if self.modified else ''
     pos = 'Row ' + str(self.cury) + ', Col ' + str(self.curx)
     while len(status) < self.COLS - len(pos)-1: status += ' '
     status += pos + ' '
     if len(status) > self.COLS: status = status[:self.COLS]
     self.screen.addstr(self.ROWS, 0, status)
     self.screen.attron(curses.color_pair(1))
+    if self.modified: self.clear_status_message()
   
   def print_buffer(self):
     for row in range(self.ROWS):
@@ -137,6 +152,7 @@ class Editor():
     c = -1
     while (c == -1): c = self.screen.getch()
     if c == ctrl(ord('q')): self.exit()
+    if c == ctrl(ord('n')): self.new_file()
     if c == ctrl(ord('s')): self.save_file()
     elif c == curses.KEY_HOME: self.curx = 0
     elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
@@ -151,8 +167,10 @@ class Editor():
     elif c == 535: self.scroll_home()
     elif c == ord('\n'): self.insert_line()
     else: self.insert_char(c)
+    self.update_screen()
 
   def open_file(self, filename):
+    self.reset()
     try:
       with open(filename) as f:
         content = f.read().split('\n')
@@ -170,6 +188,12 @@ class Editor():
         content += ''.join([chr(c) for c in row]) + '\n'
       f.write(content)
       self.screen.addstr(self.ROWS+1, 0, 'File "' + self.filename + '" saved')
+    self.modified = 0
+
+  def new_file(self):
+    self.reset()
+    self.buff.append([])
+    self.total_lines = 1
 
   def exit(self):
     curses.endwin()
