@@ -23,7 +23,6 @@ class Editor():
     self.screen.attron(curses.color_pair(1))
   
   def move_cursor(self, key):
-    vertical = False
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     if key == curses.KEY_LEFT:
       if self.curx != 0:
@@ -41,15 +40,11 @@ class Editor():
         self.curx = 0
     elif key == curses.KEY_UP:
       if self.cury != 0: self.cury -= 1
-      else: self.usrx = 0
-      vertical = True
     elif key == curses.KEY_DOWN:
-      if self.cury < self.total_lines-1: self.cury += 1
-      else: self.usrx = len(self.buff[-1])
-      vertical = True
+      if self.cury < self.total_lines-1:
+        self.cury += 1
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     rowlen = len(row) if row is not None else 0
-    if vertical: self.curx = self.usrx
     if self.curx > rowlen: self.curx = rowlen
 
   def scroll_buffer(self):
