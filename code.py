@@ -22,6 +22,30 @@ class Editor():
     curses.init_pair(1, 15, curses.COLOR_BLACK)
     self.screen.attron(curses.color_pair(1))
   
+  def insert_char(self, c):
+    self.buff[self.cury].insert(self.curx, c)
+    self.curx += 1
+  
+  def delete_char(self):
+    if self.curx:
+      self.curx -= 1
+      del self.buff[self.cury][self.curx]
+    elif self.curx == 0 and self.cury:
+      oldline = self.buff[self.cury][self.curx:]
+      del self.buff[self.cury]
+      self.cury -= 1
+      self.curx = len(self.buff[self.cury])
+      self.buff[self.cury] += oldline
+      self.total_lines -= 1
+
+  def insert_line(self):
+    oldline = self.buff[self.cury][self.curx:]
+    self.buff[self.cury] = self.buff[self.cury][:self.curx]
+    self.cury += 1
+    self.curx = 0
+    self.buff.insert(self.cury, [] + oldline)
+    self.total_lines += 1
+  
   def move_cursor(self, key):
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     if key == curses.KEY_LEFT:
@@ -46,6 +70,16 @@ class Editor():
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     rowlen = len(row) if row is not None else 0
     if self.curx > rowlen: self.curx = rowlen
+  
+  def scroll_page(self, key):
+    if key == curses.KEY_PPAGE: self.cury = self.offy
+    elif key == curses.KEY_NPAGE:
+      self.cury = self.offy + self.ROWS -1
+      if self.cury > self.total_lines: self.cury = self.total_lines
+    times = self.ROWS
+    while times:
+      self.move_cursor(curses.KEY_UP if key == curses.KEY_PPAGE else curses.KEY_DOWN)
+      times -= 1
 
   def scroll_buffer(self):
     if self.cury < self.offy: self.offy = self.cury
@@ -79,26 +113,35 @@ class Editor():
     c = -1
     while (c == -1): c = self.screen.getch()
     if c == ctrl(ord('q')): self.exit()
+    if c == ctrl(ord('s')): self.save_file()
     elif c == curses.KEY_HOME: pass
     elif c == curses.KEY_END: pass
     elif c == curses.KEY_LEFT: self.move_cursor(c)
     elif c == curses.KEY_RIGHT: self.move_cursor(c)
     elif c == curses.KEY_UP: self.move_cursor(c)
     elif c == curses.KEY_DOWN: self.move_cursor(c)
-    elif c == curses.KEY_BACKSPACE: pass
-    elif c == curses.KEY_NPAGE: pass
-    elif c == curses.KEY_PPAGE: pass
+    elif c == curses.KEY_BACKSPACE: self.delete_char()
+    elif c == curses.KEY_NPAGE: self.scroll_page(c)
+    elif c == curses.KEY_PPAGE: self.scroll_page(c)
     elif c == 530: pass # ctrl-end
     elif c == 535: pass # ctrl-home
-    else: pass#self.insert_char(c)
+    elif c == ord('\n'): self.insert_line()
+    else: self.insert_char(c)
 
   def open_file(self, filename):
-    with open('code.py') as f:
+    with open(filename) as f:
       content = f.read().split('\n')
       for row in content[:-1]:
         self.buff.append([ord(c) for c in row])
     self.total_lines = len(self.buff)
     self.update_screen()
+  
+  def save_file(self):
+    with open('test.txt', 'w') as f:
+      content = ''
+      for row in self.buff:
+        content += ''.join([chr(c) for c in row]) + '\n'
+      f.write(content)
 
   def exit(self):
     curses.endwin()
@@ -112,7 +155,7 @@ class Editor():
 if __name__ == '__main__':
   def main(stdscr):
     editor = Editor()
-    editor.open_file('code.py')
+    editor.open_file('test.txt')
     editor.start()
 
   wrapper(main)
