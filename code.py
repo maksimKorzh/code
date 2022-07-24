@@ -44,7 +44,7 @@ class Editor():
       else: self.usrx = 0
       vertical = True
     elif key == curses.KEY_DOWN:
-      if self.cury < self.total_lines: self.cury += 1
+      if self.cury < self.total_lines-1: self.cury += 1
       else: self.usrx = len(self.buff[-1])
       vertical = True
     row = self.buff[self.cury] if self.cury < self.total_lines else None
@@ -67,7 +67,6 @@ class Editor():
         except: pass
 
       self.screen.clrtoeol()
-      
       try: self.screen.addch('\n')
       except: pass
 
