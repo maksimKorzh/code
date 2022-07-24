@@ -20,8 +20,8 @@ class Editor():
     curses.raw()
     curses.noecho()
     curses.start_color()
-    curses.init_pair(1, 15, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLACK, 15)
+    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
     self.screen.attron(curses.color_pair(1))
     self.filename = 'Untitled.txt'
   
