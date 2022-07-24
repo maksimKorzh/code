@@ -1,3 +1,4 @@
+from curses import wrapper
 import curses
 import sys
 
@@ -13,169 +14,110 @@ class Editor():
     self.usrx = 0
     self.curx = 0
     self.cury = 0
-    self.curs = 0
     self.buff = []
     self.total_lines = 0
     curses.raw()
     curses.noecho()
-
-  def ctrl(self, c): return ((c) & 0x1f)
-  def move_right(self):    
-    if self.curs < len(self.buff):
-      if self.buff[self.curs] == ord('\n'):
+    curses.start_color()
+    curses.init_pair(1, 15, curses.COLOR_BLACK)
+    self.screen.attron(curses.color_pair(1))
+  
+  def move_cursor(self, key):
+    row = self.buff[self.cury] if self.cury < self.total_lines else None
+    if key == curses.KEY_LEFT:
+      if self.curx != 0:
+        self.curx -= 1
+        self.usrx -= 1
+      elif self.cury > 0:
+        self.cury -= 1
+        self.curx = len(self.buff[self.cury])
+    elif key == curses.KEY_RIGHT:
+      if row is not None and self.curx < len(row):
+        self.curx += 1
+        self.usrx += 1
+      elif row is not None and self.curx == len(row) and self.cury != self.total_lines-1:
         self.cury += 1
         self.curx = 0
-      else: self.curx += 1
-      self.curs += 1;
-    if self.cury == self.ROWS:
-      self.cury -= 1
-      self.offy += 1
-
-  def move_left(self):
-    if self.curs:
-      self.curs -= 1
-      if self.curx: self.curx -= 1
-      else:
-        if self.cury > -1: self.cury -= 1
-        count = self.curs - 1
-        while self.buff[count] != ord('\n'): count -= 1;
-        self.curx = self.curs - count - 1
-        if self.cury == 0 and not self.offy:
-          self.curx = self.curs
-        if self.cury == -1 and self.offy > 1:
-          self.cury += 1
-          self.offy -= 1
-        elif self.cury == -1 and self.offy <=1:
-          self.offy -= 1
-          self.cury += 1
-          self.curx = self.curs
-
-  def move_up(self):
-    self.move_home()
-    self.move_left()
-    while self.curx > self.usrx: self.move_left()
-        
-  def move_down(self):
-    self.move_end()
-    self.move_right()
-    while self.curx < self.usrx:
-      if self.curs == len(self.buff): break
-      if self.buff[self.curs] == ord('\n'): break
-      self.move_right()
-  
-  def page_down(self):
-    if self.offy >= self.total_lines - self.ROWS - 1:
-      while self.cury != self.ROWS - 1: self.move_down()
-      self.move_end()
-      return
-    self.screen.clear()
-    count = 0
-    while count != self.ROWS - 1:
-      if self.offy <= self.total_lines - self.ROWS - 1:
-        self.offy += 1
+    elif key == curses.KEY_UP:
+      if self.cury != 0:
         self.cury -= 1
-      self.move_down()
-      count += 1
+        self.curx = 0
+      else: self.curx = 0
+    elif key == curses.KEY_DOWN:
+      if self.total_lines and self.cury != self.total_lines-1:
+        self.cury += 1
+        self.curx = len(self.buff[self.cury])
+      elif self.cury == self.total_lines-1:
+        self.curx = len(self.buff[self.total_lines-1])
+  '''
+      case ARROW_UP:
+        if (cury != 0) {
+          cury--;
+          curx = lastx;
+        } else curx = 0;
+        break;
+      case ARROW_DOWN:
+        if (total_lines && cury != total_lines - 1) {
+          cury++;
+          curx = lastx;
+        } else if (cury == total_lines - 1) curx = text[total_lines].rlen;
+        break;
+    }
+    row = (cury >= total_lines) ? NULL : &text[cury];
+    int rowlen = row ? row->len : 0;
+    if (curx > rowlen) curx = rowlen;
+  }
+  '''
   
-  def page_up(self):
-    if self.offy == 0:
-      while self.cury != 0: self.move_up()
-      self.move_home()
-      return
-    count = 0
-    while count != self.ROWS - 1 and self.offy:
-      self.offy -= 1
-      self.cury += 1
-      self.move_up()
-      count += 1
-  
-  def move_bottom(self):
-    while self.curs <= len(self.buff) - 1:
-      self.page_down()
-  
-  def move_top(self):
-    while self.curs: self.page_up()
-  
-  def move_home(self):
-    while(True):
-      if self.curs == 0:
-        self.usrx = self.curs
-        break
-      elif self.buff[self.curs-1] == ord('\n'): break
-      self.move_left()
-
-  def move_end(self):
-    while(True):
-      if self.curs == len(self.buff):
-        self.usrx = self.curx
-        break
-      if self.buff[self.curs] == ord('\n'): break
-      self.move_right()
-
-  def delete_char(self):
-    self.move_left()
-    if len(self.buff): del self.buff[self.curs]
-    self.screen.clear()
-
-  def insert_char(self, c):
-    if c == ord('\n'):
-      self.total_lines += 1
-      if self.cury < self.ROWS - 1: self.cury += 1
-      self.curx = -1
-      self.screen.clrtoeol()
-    
-    #if self.curx < self.COLS-1:
-    
-    
-    self.buff.insert(self.curs, c); self.curs += 1
-    self.curx += 1
-    self.usrx = self.curx
+  def scroll_buffer(self):
+    if self.cury < self.offy: self.offy = self.cury
+    if self.cury >= self.offy + self.ROWS: self.offy = self.cury - self.ROWS+1
+    if self.curx < self.offx: self.offx = self.curx
+    if self.curx >= self.offx + self.COLS: self.offx = self.curx - self.COLS+1
 
   def print_buffer(self):
-    rows = 0
-    for c in self.buff:
-      if rows >= self.offy and rows < self.ROWS + self.offy:
-        try: self.screen.addch(c)
+    for row in range(len(self.buff)):
+      if row >= self.offy and row <= self.offy + self.ROWS-1:
+        for col in range(len(self.buff[row])):
+          if col >= self.offx and col <= self.offx + self.COLS-1:
+            try: self.screen.addch(self.buff[row][col])
+            except: pass
+        try: self.screen.addch('\n')
         except: pass
-
-      if c == ord('\n'):
-        rows += 1
-        if rows > self.ROWS + self.offy-1: break
 
   def update_screen(self):
     self.screen.move(0, 0)
-    curses.curs_set(0)
+    self.scroll_buffer()
     self.print_buffer()
-    
-    #if self.cury < self.ROWS-1 and self.curx < self.COLS-1:
-    self.screen.move(self.cury, self.curx)
-
+    curses.curs_set(0)
+    self.screen.move(self.cury - self.offy, self.curx - self.offx)
     curses.curs_set(1)
     self.screen.refresh()
 
   def read_keyboard(self):
-    self.usrx = self.usrx
+    def ctrl(c): return ((c) & 0x1f)
     c = -1
     while (c == -1): c = self.screen.getch()
-    if c == self.ctrl(ord('q')): self.exit()
-    elif c == curses.KEY_HOME: self.move_home(); self.usrx = self.curx
-    elif c == curses.KEY_END: self.move_end(); self.usrx = self.curx
-    elif c == curses.KEY_LEFT: self.move_left(); self.usrx = self.curx
-    elif c == curses.KEY_RIGHT: self.move_right(); self.usrx = self.curx
-    elif c == curses.KEY_UP: self.move_up()
-    elif c == curses.KEY_DOWN: self.move_down()
-    elif c == curses.KEY_BACKSPACE: self.delete_char()
-    elif c == curses.KEY_NPAGE: self.page_down()
-    elif c == curses.KEY_PPAGE:self.page_up()
-    elif c == 530: self.move_bottom()
-    elif c == 535: self.move_top()
-    else: self.insert_char(c)
+    if c == ctrl(ord('q')): self.exit()
+    elif c == curses.KEY_HOME: pass
+    elif c == curses.KEY_END: pass
+    elif c == curses.KEY_LEFT: self.move_cursor(c)
+    elif c == curses.KEY_RIGHT: self.move_cursor(c)
+    elif c == curses.KEY_UP: self.move_cursor(c)
+    elif c == curses.KEY_DOWN: self.move_cursor(c)
+    elif c == curses.KEY_BACKSPACE: pass
+    elif c == curses.KEY_NPAGE: pass
+    elif c == curses.KEY_PPAGE: pass
+    elif c == 530: pass # ctrl-end
+    elif c == 535: pass # ctrl-home
+    else: pass#self.insert_char(c)
 
   def open_file(self, filename):
     with open('code.py') as f:
-      content = f.read()
-      self.buff = [ord(c) for c in content[:-1]]
-      self.total_lines = len(content.split('\n')) - 1
+      content = f.read().split('\n')
+      for row in content[:-1]:
+        self.buff.append([ord(c) for c in row])
+        self.total_lines += 1
     self.update_screen()
 
   def exit(self):
@@ -188,8 +130,11 @@ class Editor():
       self.update_screen()
 
 if __name__ == '__main__':
-  editor = Editor()
-  editor.open_file('code.py')
-  editor.start()
+  def main(stdscr):
+    editor = Editor()
+    editor.open_file('code.py')
+    editor.start()
+
+  wrapper(main)
 
 # last commented line
