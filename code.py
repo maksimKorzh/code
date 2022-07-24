@@ -23,6 +23,7 @@ class Editor():
     self.screen.attron(curses.color_pair(1))
   
   def move_cursor(self, key):
+    vertical = False
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     if key == curses.KEY_LEFT:
       if self.curx != 0:
@@ -39,51 +40,36 @@ class Editor():
         self.cury += 1
         self.curx = 0
     elif key == curses.KEY_UP:
-      if self.cury != 0:
-        self.cury -= 1
-        self.curx = 0
-      else: self.curx = 0
+      if self.cury != 0: self.cury -= 1
+      else: self.usrx = 0
+      vertical = True
     elif key == curses.KEY_DOWN:
-      if self.total_lines and self.cury != self.total_lines-1:
-        self.cury += 1
-        self.curx = len(self.buff[self.cury])
-      elif self.cury == self.total_lines-1:
-        self.curx = len(self.buff[self.total_lines-1])
-  '''
-      case ARROW_UP:
-        if (cury != 0) {
-          cury--;
-          curx = lastx;
-        } else curx = 0;
-        break;
-      case ARROW_DOWN:
-        if (total_lines && cury != total_lines - 1) {
-          cury++;
-          curx = lastx;
-        } else if (cury == total_lines - 1) curx = text[total_lines].rlen;
-        break;
-    }
-    row = (cury >= total_lines) ? NULL : &text[cury];
-    int rowlen = row ? row->len : 0;
-    if (curx > rowlen) curx = rowlen;
-  }
-  '''
-  
+      if self.cury < self.total_lines: self.cury += 1
+      else: self.usrx = len(self.buff[-1])
+      vertical = True
+    row = self.buff[self.cury] if self.cury < self.total_lines else None
+    rowlen = len(row) if row is not None else 0
+    if vertical: self.curx = self.usrx
+    if self.curx > rowlen: self.curx = rowlen
+
   def scroll_buffer(self):
     if self.cury < self.offy: self.offy = self.cury
     if self.cury >= self.offy + self.ROWS: self.offy = self.cury - self.ROWS+1
     if self.curx < self.offx: self.offx = self.curx
     if self.curx >= self.offx + self.COLS: self.offx = self.curx - self.COLS+1
-
+  
   def print_buffer(self):
-    for row in range(len(self.buff)):
-      if row >= self.offy and row <= self.offy + self.ROWS-1:
-        for col in range(len(self.buff[row])):
-          if col >= self.offx and col <= self.offx + self.COLS-1:
-            try: self.screen.addch(self.buff[row][col])
-            except: pass
-        try: self.screen.addch('\n')
+    for row in range(self.ROWS):
+      buffrow = row + self.offy
+      for col in range(self.COLS):
+        buffcol = col + self.offx
+        try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
         except: pass
+
+      self.screen.clrtoeol()
+      
+      try: self.screen.addch('\n')
+      except: pass
 
   def update_screen(self):
     self.screen.move(0, 0)
@@ -117,7 +103,7 @@ class Editor():
       content = f.read().split('\n')
       for row in content[:-1]:
         self.buff.append([ord(c) for c in row])
-        self.total_lines += 1
+    self.total_lines = len(self.buff)
     self.update_screen()
 
   def exit(self):
@@ -138,3 +124,4 @@ if __name__ == '__main__':
   wrapper(main)
 
 # last commented line
+# EOF
