@@ -23,7 +23,7 @@ class Editor():
     curses.init_pair(1, 15, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_BLACK, 15)
     self.screen.attron(curses.color_pair(1))
-    self.filename = 'New file'
+    self.filename = 'Untitled.txt'
   
   def insert_char(self, c):
     self.buff[self.cury].insert(self.curx, c)
@@ -153,20 +153,23 @@ class Editor():
     else: self.insert_char(c)
 
   def open_file(self, filename):
-    with open(filename) as f:
-      content = f.read().split('\n')
-      for row in content[:-1]:
-        self.buff.append([ord(c) for c in row])
+    try:
+      with open(filename) as f:
+        content = f.read().split('\n')
+        for row in content[:-1]:
+          self.buff.append([ord(c) for c in row])
+      self.filename = filename
+    except: self.buff.append([])
     self.total_lines = len(self.buff)
-    self.filename = filename
     self.update_screen()
   
   def save_file(self):
-    with open('code.py', 'w') as f:
+    with open(self.filename, 'w') as f:
       content = ''
       for row in self.buff:
         content += ''.join([chr(c) for c in row]) + '\n'
       f.write(content)
+      self.screen.addstr(self.ROWS+1, 0, 'File "' + self.filename + '" saved')
 
   def exit(self):
     curses.endwin()
@@ -180,7 +183,8 @@ class Editor():
 if __name__ == '__main__':
   def main(stdscr):
     editor = Editor()
-    editor.open_file('code.py')
+    if len(sys.argv) >= 2: editor.open_file(sys.argv[1])
+    else: editor.open_file('')
     editor.start()
 
   wrapper(main)
