@@ -170,8 +170,7 @@ class Editor():
     self.screen.move(self.ROWS, 0)
     self.screen.attron(curses.color_pair(2))
     self.screen.addstr('search:')
-    try:
-      while 1: self.screen.addch(' ')
+    try: [self.screen.addch(' ') for i in range(self.COLS)]
     except: pass
     self.screen.move(self.ROWS, 8)
     self.screen.refresh()
@@ -181,8 +180,15 @@ class Editor():
       c = -1
       while (c == -1): c = self.screen.getch()
       if c == 10: break
-      self.screen.addch(c)
+      if c == curses.KEY_BACKSPACE:
+        if self.screen.getyx()[1] > 8:
+          self.screen.move(self.ROWS, self.screen.getyx()[1]-1)
+          self.screen.addch(' ')
+          self.screen.move(self.ROWS, self.screen.getyx()[1]-1)
+          word = word[:len(word)-1]
       word += chr(c)
+      if c != curses.KEY_BACKSPACE: self.screen.addch(c)
+      else: word = word[:len(word)-1]
     for row in range(len(self.buff)):
       buffrow = self.buff[row]
       for col in range(len(buffrow)):
