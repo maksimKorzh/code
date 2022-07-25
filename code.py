@@ -1,5 +1,4 @@
 #!/bin/python3
-from curses import wrapper
 import curses
 import sys
 
@@ -16,9 +15,15 @@ class Editor():
     try:
       curses.init_pair(1, 15, 0)
       curses.init_pair(2, 0, 15)
+      curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
+      curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
+      curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
     except:
       curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
       curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+      curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
+      curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
+      curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
     self.screen.attron(curses.color_pair(1))
 
   def reset(self):
@@ -126,6 +131,8 @@ class Editor():
     if self.modified: self.clear_status_message()
   
   def print_buffer(self):
+    char_count = 0
+    last_keyword = ''
     for row in range(self.ROWS):
       buffrow = row + self.offy
       for col in range(self.COLS):
@@ -176,8 +183,11 @@ class Editor():
         content = f.read().split('\n')
         for row in content[:-1]:
           self.buff.append([ord(c) for c in row])
-      self.filename = filename
     except: self.buff.append([])
+    if filename:
+      self.filename = filename
+      if '.txt' in filename: self.highlight = False
+      else: self.highlight = True
     self.total_lines = len(self.buff)
     self.update_screen()
   
@@ -211,7 +221,7 @@ if __name__ == '__main__':
     else: editor.open_file('')
     editor.start()
 
-  wrapper(main)
+  curses.wrapper(main)
 
 # last commented line
 # EOF
