@@ -152,6 +152,7 @@ class Editor():
     if c == ctrl(ord('f')): self.search()
     if c == ctrl(ord('g')): self.find_next()
     if c == ctrl(ord('d')): self.delete_line()
+    if c == ctrl(ord('i')): self.indent()
     elif c == curses.KEY_HOME: self.curx = 0
     elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
     elif c == curses.KEY_LEFT: self.move_cursor(c)
@@ -167,12 +168,10 @@ class Editor():
     elif ctrl(c) != c: self.insert_char(c)
     self.update_screen()
 
-  def search(self):
-    self.search_results = []
-    self.search_index = 0
+  def command_prompt(self, line):
     self.screen.move(self.ROWS, 0)
     self.screen.attron(curses.color_pair(2))
-    self.screen.addstr('search:')
+    self.screen.addstr(line)
     try: [self.screen.addch(' ') for i in range(self.COLS)]
     except: pass
     self.screen.move(self.ROWS, 8)
@@ -192,6 +191,27 @@ class Editor():
       word += chr(c)
       if c != curses.KEY_BACKSPACE: self.screen.addch(c)
       else: word = word[:len(word)-1]
+    return word
+
+  def indent(self):
+    indent = self.command_prompt('indent:')
+    try: # format: [rows] [cols] [+/-]
+      start_row = self.cury
+      end_row = self.cury + int(indent.split()[0])
+      start_col = self.curx
+      end_col = self.curx + int(indent.split()[1])
+      dir = indent.split()[2]
+      for row in range(start_row, end_row):
+        for col in range(start_col, end_col):
+          if dir == '+': self.buff[row].insert(col, ' ')
+          if dir == '-': del self.buff[row][self.curx]
+        
+    except: pass
+
+  def search(self):
+    self.search_results = []
+    self.search_index = 0
+    word = self.command_prompt('search:')
     for row in range(len(self.buff)):
       buffrow = self.buff[row]
       for col in range(len(buffrow)):
