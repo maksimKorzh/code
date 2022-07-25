@@ -24,6 +24,8 @@ class Editor():
     self.total_lines = 0
     self.filename = 'Untitled.txt'
     self.modified = 0
+    self.search_results = []
+    self.search_index = 0
   
   def insert_char(self, c):
     self.buff[self.cury].insert(self.curx, c)
@@ -124,7 +126,6 @@ class Editor():
         buffcol = col + self.offx
         try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
         except: pass
-
       self.screen.clrtoeol()
       try: self.screen.addch('\n')
       except: pass
@@ -146,6 +147,8 @@ class Editor():
     if c == ctrl(ord('q')): self.exit()
     if c == ctrl(ord('n')): self.new_file()
     if c == ctrl(ord('s')): self.save_file()
+    if c == ctrl(ord('f')): self.search()
+    if c == ctrl(ord('g')): self.find_next()
     elif c == curses.KEY_HOME: self.curx = 0
     elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
     elif c == curses.KEY_LEFT: self.move_cursor(c)
@@ -158,8 +161,45 @@ class Editor():
     elif c == 530: self.scroll_end()
     elif c == 535: self.scroll_home()
     elif c == ord('\n'): self.insert_line()
-    else: self.insert_char(c)
+    elif ctrl(c) != c: self.insert_char(c)
     self.update_screen()
+
+  def search(self):
+    self.search_results = []
+    self.search_index = 0
+    self.screen.move(self.ROWS, 0)
+    self.screen.attron(curses.color_pair(2))
+    self.screen.addstr('search:')
+    try:
+      while 1: self.screen.addch(' ')
+    except: pass
+    self.screen.move(self.ROWS, 8)
+    self.screen.refresh()
+    word = ''
+    c = -1
+    while c != 0x1b:
+      c = -1
+      while (c == -1): c = self.screen.getch()
+      if c == 10: break
+      self.screen.addch(c)
+      word += chr(c)
+    for row in range(len(self.buff)):
+      buffrow = self.buff[row]
+      for col in range(len(buffrow)):
+        if ''.join([chr(c) for c in buffrow[col:col+len(word)]]) == word:
+          self.search_results.append([row, col])
+    if len(self.search_results):
+      self.cury, self.curx = self.search_results[self.search_index]
+      self.search_index += 1
+    self.screen.attron(curses.color_pair(1))
+
+  def find_next(self):
+    if len(self.search_results):
+      if self.search_index == len(self.search_results)-1:
+        self.search_index = 0
+      try: self.cury, self.curx = self.search_results[self.search_index]
+      except: pass
+      self.search_index += 1
 
   def open_file(self, filename):
     self.reset()
