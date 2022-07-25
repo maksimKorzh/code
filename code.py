@@ -12,18 +12,8 @@ class Editor():
     curses.raw()
     curses.noecho()
     curses.start_color()
-    try:
-      curses.init_pair(1, 15, 0)
-      curses.init_pair(2, 0, 15)
-      curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
-      curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
-      curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
-    except:
-      curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-      curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
-      curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
-      curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
-      curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
     self.screen.attron(curses.color_pair(1))
 
   def reset(self):
