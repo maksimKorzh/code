@@ -119,7 +119,7 @@ class Editor():
     self.screen.attron(curses.color_pair(2))
     status = self.filename + ' - ' + str(self.total_lines) + ' lines'
     status += ' modified' if self.modified else ' saved'
-    pos = 'Row ' + str(self.cury) + ', Col ' + str(self.curx)
+    pos = 'Row ' + str(self.cury+1) + ', Col ' + str(self.curx+1)
     while len(status) < self.COLS - len(pos)-1: status += ' '
     status += pos + ' '
     if len(status) > self.COLS: status = status[:self.COLS]
