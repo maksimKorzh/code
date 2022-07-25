@@ -19,7 +19,6 @@ class Editor():
     self.cury = 0
     self.offx = 0
     self.offy = 0
-    self.usrx = 0
     self.buff = []
     self.total_lines = 0
     self.filename = 'Untitled.txt'
@@ -54,19 +53,22 @@ class Editor():
     self.total_lines += 1
     self.modified += 1
   
+  def delete_line(self):
+    try:
+      del self.buff[self.cury]
+      self.curx = 0
+      self.total_lines -= 1
+    except: pass
   def move_cursor(self, key):
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     if key == curses.KEY_LEFT:
-      if self.curx != 0:
-        self.curx -= 1
-        self.usrx -= 1
+      if self.curx != 0: self.curx -= 1
       elif self.cury > 0:
         self.cury -= 1
         self.curx = len(self.buff[self.cury])
     elif key == curses.KEY_RIGHT:
       if row is not None and self.curx < len(row):
         self.curx += 1
-        self.usrx += 1
       elif row is not None and self.curx == len(row) and self.cury != self.total_lines-1:
         self.cury += 1
         self.curx = 0
@@ -149,6 +151,7 @@ class Editor():
     if c == ctrl(ord('s')): self.save_file()
     if c == ctrl(ord('f')): self.search()
     if c == ctrl(ord('g')): self.find_next()
+    if c == ctrl(ord('d')): self.delete_line()
     elif c == curses.KEY_HOME: self.curx = 0
     elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
     elif c == curses.KEY_LEFT: self.move_cursor(c)
