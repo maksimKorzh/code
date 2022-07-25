@@ -8,7 +8,7 @@ class Editor():
     self.screen.keypad(True)
     self.screen.nodelay(1)
     self.ROWS, self.COLS = self.screen.getmaxyx()
-    self.ROWS -= 2
+    self.ROWS -= 1
     curses.raw()
     curses.noecho()
     curses.start_color()
@@ -77,7 +77,7 @@ class Editor():
       if row is not None and self.curx < len(row):
         self.curx += 1
         self.usrx += 1
-      elif row is not None and self.curx == len(row) and self.cury != self.total_lines-1:            # and here goes a very long comment just for testing purposes to make sure a disaster is not gonna happen if I scroll through it))))
+      elif row is not None and self.curx == len(row) and self.cury != self.total_lines-1:
         self.cury += 1
         self.curx = 0
     elif key == curses.KEY_UP:
@@ -114,21 +114,18 @@ class Editor():
     if self.cury >= self.offy + self.ROWS: self.offy = self.cury - self.ROWS+1
     if self.curx < self.offx: self.offx = self.curx
     if self.curx >= self.offx + self.COLS: self.offx = self.curx - self.COLS+1
-  
-  def clear_status_message(self):
-    self.screen.addstr(self.ROWS+1, 0, ' ' * (self.COLS-1))
 
   def print_status_bar(self):
     self.screen.attron(curses.color_pair(2))
     status = self.filename + ' - ' + str(self.total_lines) + ' lines'
-    status += ' [modified]' if self.modified else ''
+    status += ' modified' if self.modified else ' saved'
     pos = 'Row ' + str(self.cury) + ', Col ' + str(self.curx)
     while len(status) < self.COLS - len(pos)-1: status += ' '
     status += pos + ' '
     if len(status) > self.COLS: status = status[:self.COLS]
-    self.screen.addstr(self.ROWS, 0, status)
+    try: self.screen.addstr(self.ROWS, 0, status)
+    except: pass
     self.screen.attron(curses.color_pair(1))
-    if self.modified: self.clear_status_message()
   
   def print_buffer(self):
     char_count = 0
@@ -197,7 +194,6 @@ class Editor():
       for row in self.buff:
         content += ''.join([chr(c) for c in row]) + '\n'
       f.write(content)
-      self.screen.addstr(self.ROWS+1, 0, 'File "' + self.filename + '" saved')
     self.modified = 0
 
   def new_file(self):
@@ -222,6 +218,3 @@ if __name__ == '__main__':
     editor.start()
 
   curses.wrapper(main)
-
-# last commented line
-# EOF
