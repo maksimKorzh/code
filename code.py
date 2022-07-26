@@ -84,6 +84,18 @@ class Editor():
     rowlen = len(row) if row is not None else 0
     if self.curx > rowlen: self.curx = rowlen
   
+  def skip_word(self, key):
+    try:
+      if self.buff[self.cury][self.curx] != ord(' '):
+        while self.buff[self.cury][self.curx] != ord(' '):
+          self.move_cursor(curses.KEY_RIGHT if key == 560 else curses.KEY_LEFT)
+          if self.buff[self.cury][self.curx] == ord('\n') or self.curx == 0: break
+      if self.buff[self.cury][self.curx] == ord(' '):
+       while self.buff[self.cury][self.curx] == ord(' '):
+         self.move_cursor(curses.KEY_RIGHT if key == 560 else curses.KEY_LEFT)
+         if self.buff[self.cury][self.curx] == ord('\n') or self.curx == 0: break
+    except: pass
+  
   def scroll_end(self):
     while self.cury < self.total_lines-1:
       self.scroll_page(curses.KEY_NPAGE)
@@ -166,6 +178,8 @@ class Editor():
     elif c == curses.KEY_PPAGE: self.scroll_page(c)
     elif c == 530: self.scroll_end()
     elif c == 535: self.scroll_home()
+    elif c == 560: self.skip_word(560)
+    elif c == 545: self.skip_word(545)
     elif c == ord('\n'): self.insert_line()
     elif ctrl(c) != c: self.insert_char(c)
     self.update_screen()
