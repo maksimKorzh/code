@@ -1,43 +1,26 @@
 #!/bin/python3
 import curses
 import sys
-from pygments.lexers import PythonLexer
+from pygments.lexers import PythonLexer, CLexer
 from pygments.formatters import TerminalFormatter
 from pygments.token import Keyword, Name, Comment, String, Error, \
     Number, Operator, Generic, Token, Whitespace
 from pygments import highlight
 
 COLOR_SCHEME = {
-    Token:              ('',            ''),
-
-    Whitespace:         ('gray',   'green'),
-    Comment:            ('gray',   'brightblack'),
-    Comment.Preproc:    ('cyan',        'brightcyan'),
-    Keyword:            ('blue',    '*brightgreen*'),
-    Keyword.Type:       ('cyan',        'brightcyan'),
-    Operator.Word:      ('magenta',      'brightmagenta'),
-    Name.Builtin:       ('cyan',        'brightcyan'),
-    Name.Function:      ('green',   'brightgreen'),
-    Name.Namespace:     ('_cyan_',      '_brightcyan_'),
-    Name.Class:         ('_green_', '_brightgreen_'),
-    Name.Exception:     ('cyan',        'brightcyan'),
-    Name.Decorator:     ('brightblack',    'gray'),
-    Name.Variable:      ('red',     'brightred'),
-    Name.Constant:      ('red',     'brightred'),
-    Name.Attribute:     ('cyan',        'brightcyan'),
-    Name.Tag:           ('brightblue',        'brightblue'),
-    String:             ('yellow',       'yellow'),
-    Number:             ('blue',    'brightblue'),
-
-    Generic.Deleted:    ('brightred',        'brightred'),
-    Generic.Inserted:   ('green',  'brightgreen'),
-    Generic.Heading:    ('**',         '**'),
-    Generic.Subheading: ('*magenta*',   '*brightmagenta*'),
-    Generic.Prompt:     ('**',         '**'),
-    Generic.Error:      ('brightred',        'brightred'),
-    Generic.Output:     ('**',         'green'),
-
-    Error:              ('_brightred_',      '_brightred_'),
+  Token:              ('',                         ''),
+  Comment:            ('gray',                 'gray'),
+  Comment.Preproc:    ('magenta',     'brightmagenta'),
+  Keyword:             ('blue',                  '**'),
+  Keyword.Type:       ('green',       '*brightgreen*'),
+  Operator.Word:      ('**',                     '**'),
+  Name.Builtin:       ('cyan',           'brightblue'),
+  Name.Function:      ('blue',           'brightblue'),
+  Name.Class:         ('_green_',        'brightblue'),
+  Name.Decorator:     ('magenta',     'brightmagenta'),
+  Name.Variable:      ('blue',           'brightblue'),
+  String:             ('yellow',       'brightyellow'),
+  Number:             ('blue',         'brightyellow')
 }
 
 class Editor():
@@ -49,8 +32,7 @@ class Editor():
     self.ROWS -= 1
     curses.raw()
     curses.noecho()
-    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    self.lexers = { 'py': PythonLexer, 'c': CLexer}
 
   def reset(self):
     self.curx = 0
@@ -175,20 +157,19 @@ class Editor():
     if self.curx >= self.offx + self.COLS: self.offx = self.curx - self.COLS+1
 
   def print_status_bar(self):
-    self.screen.attron(curses.color_pair(2))
-    status = self.filename + ' - ' + str(self.total_lines) + ' lines'
+    status = '\x1b[7m'
+    status += self.filename + ' - ' + str(self.total_lines) + ' lines'
     status += ' modified' if self.modified else ' saved'
     pos = 'Row ' + str(self.cury+1) + ', Col ' + str(self.curx+1)
-    while len(status) < self.COLS - len(pos)-1: status += ' '
+    while len(status) < self.COLS - len(pos) + 3: status += ' '
     status += pos + ' '
-    if len(status) > self.COLS: status = status[:self.COLS]
-    try: self.screen.addstr(self.ROWS, 0, status)
-    except: pass
-    self.screen.attron(curses.color_pair(1))
+    status += '\x1b[m'
+    status += '\x1b[' + str(self.cury - self.offy+1) + ';' + str(self.curx - self.offx+1) + 'H'
+    status += '\x1b[?25h'
+    return status
 
   def print_buffer(self):
-    print_buffer = ''
-    print_buffer += '\x1b[?25l'
+    print_buffer = '\x1b[?25l'
     print_buffer += '\x1b[H'
     for row in range(self.ROWS):
       buffrow = row + self.offy;
@@ -198,44 +179,17 @@ class Editor():
         if rowlen > self.COLS: rowlen = self.COLS;
         print_buffer += highlight(
           ''.join([chr(c) for c in self.buff[buffrow][self.offx: self.offx + rowlen]]),
-          PythonLexer(), TerminalFormatter(bg='dark', colorscheme=COLOR_SCHEME))[:-1]
+          self.lexers[self.filename.split('.')[-1]](),
+          TerminalFormatter(bg='dark', colorscheme=COLOR_SCHEME))[:-1]
       print_buffer += '\x1b[K'
       print_buffer += '\r\n'
-    print_buffer += '\x1b[?25h'
-    print_buffer += '\x1b[' + str(self.cury - self.offy+1) + ';' + str(self.curx - self.offx+1) + 'H'
-    sys.stdout.write(print_buffer)
-    sys.stdout.flush()
-
-  #def print_buffer(self):
-  #  for row in range(self.ROWS):
-  #    buffrow = row + self.offy
-  #    for col in range(self.COLS):
-  #      buffcol = col + self.offx
-  #      try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
-  #      except: pass
-  #    self.screen.clrtoeol()
-  #    try: self.screen.addch('\n')
-  #    except: pass
+    return print_buffer
 
   def update_screen(self):
-    #self.scroll_buffer()
-    self.screen.move(0, 0)
     self.scroll_buffer()
-    self.print_buffer()
-    self.print_status_bar()
-    curses.curs_set(0)
-    self.screen.move(self.cury - self.offy, self.curx - self.offx)
-    curses.curs_set(1)
-
-
-    #print_buffer += '\x1b[' + str(self.cury + 1) + ';' + str(self.curx + 1) + 'H'
-    #sys.stdout.write(print_buffer)
-    #sys.stdout.flush()
-
-
-
-
-    self.screen.refresh()
+    print_buffer = self.print_buffer()
+    status_bar = self.print_status_bar()
+    sys.stdout.write(print_buffer + status_bar)
 
   def read_keyboard(self):
     def ctrl(c): return ((c) & 0x1f)
@@ -268,15 +222,14 @@ class Editor():
     self.update_screen()
 
   def command_prompt(self, line):
-    self.screen.move(self.ROWS, 0)
-    self.screen.attron(curses.color_pair(2))
-    self.screen.addstr(line)
-    try: [self.screen.addch(' ') for i in range(self.COLS)]
-    except: pass
+    command_line = '\x1b[' + str(self.ROWS+1) + ';' + '0' + 'H'
+    command_line += '\x1b[7m' + line
+    command_line += ''.join([' ' for i in range(self.COLS - 22)])
+    sys.stdout.write(command_line)
+    sys.stdout.flush()
     self.screen.move(self.ROWS, 8)
     self.screen.refresh()
-    word = ''
-    c = -1
+    word = ''; c = -1
     while c != 0x1b:
       c = -1
       while (c == -1): c = self.screen.getch()
@@ -363,6 +316,7 @@ class Editor():
     sys.exit(0)
 
   def start(self):
+    self.update_screen()
     while(True):
       self.read_keyboard()
       self.update_screen()
