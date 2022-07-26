@@ -54,12 +54,15 @@ class Editor():
     self.modified += 1
   
   def delete_line(self):
+    if len(self.buff) == 1: return
     try:
       del self.buff[self.cury]
       self.curx = 0
       self.total_lines -= 1
     except: pass
     self.modified += 1
+    if self.cury >= self.total_lines:
+      self.cury = self.total_lines-1
 
   def move_cursor(self, key):
     row = self.buff[self.cury] if self.cury < self.total_lines else None
