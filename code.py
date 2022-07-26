@@ -85,17 +85,29 @@ class Editor():
     if self.curx > rowlen: self.curx = rowlen
   
   def skip_word(self, key):
-    try:
-      if self.buff[self.cury][self.curx] != ord(' '):
-        while self.buff[self.cury][self.curx] != ord(' '):
-          self.move_cursor(curses.KEY_RIGHT if key == 560 else curses.KEY_LEFT)
-          if self.buff[self.cury][self.curx] == ord('\n') or self.curx == 0: break
-      if self.buff[self.cury][self.curx] == ord(' '):
-       while self.buff[self.cury][self.curx] == ord(' '):
-         self.move_cursor(curses.KEY_RIGHT if key == 560 else curses.KEY_LEFT)
-         if self.buff[self.cury][self.curx] == ord('\n') or self.curx == 0: break
-    except: pass
-  
+    if key == 545:
+      self.move_cursor(curses.KEY_LEFT)
+      try:
+        if self.buff[self.cury][self.curx] != ord(' '):
+          while self.buff[self.cury][self.curx] != ord(' '):
+            if self.curx == 0: break
+            self.move_cursor(curses.KEY_LEFT)
+        elif self.buff[self.cury][self.curx] == ord(' '):
+          while self.buff[self.cury][self.curx] == ord(' '):
+            if self.curx == 0: break
+            self.move_cursor(curses.KEY_LEFT)
+      except: pass
+    if key == 560:
+      self.move_cursor(curses.KEY_RIGHT)
+      try:
+        if self.buff[self.cury][self.curx] != ord(' '):
+          while self.buff[self.cury][self.curx] != ord(' '):
+            self.move_cursor(curses.KEY_RIGHT)
+        elif self.buff[self.cury][self.curx] == ord(' '):
+          while self.buff[self.cury][self.curx] == ord(' '):
+            self.move_cursor(curses.KEY_RIGHT)
+      except: pass
+
   def scroll_end(self):
     while self.cury < self.total_lines-1:
       self.scroll_page(curses.KEY_NPAGE)
