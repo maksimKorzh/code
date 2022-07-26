@@ -177,10 +177,12 @@ class Editor():
         rowlen = len(self.buff[buffrow]) - self.offx
         if rowlen < 0: rowlen = 0;
         if rowlen > self.COLS: rowlen = self.COLS;
-        print_buffer += highlight(
+        try:
+          print_buffer += highlight(
           ''.join([chr(c) for c in self.buff[buffrow][self.offx: self.offx + rowlen]]),
           self.lexers[self.filename.split('.')[-1]](),
           TerminalFormatter(bg='dark', colorscheme=COLOR_SCHEME))[:-1]
+        except: print_buffer += ''.join([chr(c) for c in self.buff[buffrow][self.offx: self.offx + rowlen]])
       print_buffer += '\x1b[K'
       print_buffer += '\r\n'
     return print_buffer
