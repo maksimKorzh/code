@@ -1,6 +1,9 @@
 #!/bin/python3
 import curses
 import sys
+from pygments.lexers import PythonLexer
+from pygments.formatters import TerminalFormatter
+from pygments import highlight
 
 class Editor():
   def __init__(self):
@@ -149,17 +152,38 @@ class Editor():
     self.screen.attron(curses.color_pair(1))
 
   def print_buffer(self):
+    print_buffer = ''
+    print_buffer += '\x1b[?25l'
+    print_buffer += '\x1b[H'
     for row in range(self.ROWS):
-      buffrow = row + self.offy
-      for col in range(self.COLS):
-        buffcol = col + self.offx
-        try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
-        except: pass
-      self.screen.clrtoeol()
-      try: self.screen.addch('\n')
-      except: pass
+      buffrow = row + self.offy;
+      if buffrow < self.total_lines:
+        rowlen = len(self.buff[buffrow]) - self.offx
+        if rowlen < 0: rowlen = 0;
+        if rowlen > self.COLS: rowlen = self.COLS;
+        print_buffer += highlight(
+          ''.join([chr(c) for c in self.buff[buffrow][self.offx: self.offx + rowlen]]),
+          PythonLexer(), TerminalFormatter())[:-1]
+      print_buffer += '\x1b[K'
+      print_buffer += '\r\n'
+    print_buffer += '\x1b[?25h'
+    print_buffer += '\x1b[' + str(self.cury - self.offy+1) + ';' + str(self.curx - self.offx+1) + 'H'
+    sys.stdout.write(print_buffer)
+    sys.stdout.flush()
+
+  #def print_buffer(self):
+  #  for row in range(self.ROWS):
+  #    buffrow = row + self.offy
+  #    for col in range(self.COLS):
+  #      buffcol = col + self.offx
+  #      try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
+  #      except: pass
+  #    self.screen.clrtoeol()
+  #    try: self.screen.addch('\n')
+  #    except: pass
 
   def update_screen(self):
+    #self.scroll_buffer()
     self.screen.move(0, 0)
     self.scroll_buffer()
     self.print_buffer()
@@ -167,6 +191,15 @@ class Editor():
     curses.curs_set(0)
     self.screen.move(self.cury - self.offy, self.curx - self.offx)
     curses.curs_set(1)
+
+
+    #print_buffer += '\x1b[' + str(self.cury + 1) + ';' + str(self.curx + 1) + 'H'
+    #sys.stdout.write(print_buffer)
+    #sys.stdout.flush()
+
+
+
+
     self.screen.refresh()
 
   def read_keyboard(self):
