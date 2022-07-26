@@ -154,7 +154,6 @@ class Editor():
         buffcol = col + self.offx
         try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
         except: pass
-
       
 
       self.screen.clrtoeol()
@@ -177,7 +176,7 @@ class Editor():
     while (c == -1): c = self.screen.getch()
     if c == ctrl(ord('q')): self.exit()
     elif c == 9: [self.insert_char(ord(' ')) for i in range(4)]
-    elif c == 353: [self.delete_char() for i in range(4)]
+    elif c == 353: [self.delete_char() for i in range(4) if self.curx]
     elif c == ctrl(ord('n')): self.new_file()
     elif c == ctrl(ord('s')): self.save_file()
     elif c == ctrl(ord('f')): self.search()
