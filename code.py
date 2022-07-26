@@ -59,6 +59,8 @@ class Editor():
       self.curx = 0
       self.total_lines -= 1
     except: pass
+    self.modified += 1
+
   def move_cursor(self, key):
     row = self.buff[self.cury] if self.cury < self.total_lines else None
     if key == curses.KEY_LEFT:
@@ -203,9 +205,9 @@ class Editor():
       dir = indent.split()[2]
       for row in range(start_row, end_row):
         for col in range(start_col, end_col):
-          if dir == '+': self.buff[row].insert(col, ' ')
+          if dir == '+': self.buff[row].insert(col, ord(' '))
           if dir == '-': del self.buff[row][self.curx]
-        
+      self.modified += 1        
     except: pass
 
   def search(self):
