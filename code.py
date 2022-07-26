@@ -222,11 +222,10 @@ class Editor():
     if len(self.search_results):
       self.cury, self.curx = self.search_results[self.search_index]
       self.search_index += 1
-    self.screen.attron(curses.color_pair(1))
 
   def find_next(self):
     if len(self.search_results):
-      if self.search_index == len(self.search_results)-1:
+      if self.search_index == len(self.search_results):
         self.search_index = 0
       try: self.cury, self.curx = self.search_results[self.search_index]
       except: pass
