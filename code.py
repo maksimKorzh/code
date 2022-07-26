@@ -192,6 +192,7 @@ class Editor():
     print_buffer = self.print_buffer()
     status_bar = self.print_status_bar()
     sys.stdout.write(print_buffer + status_bar)
+    sys.stdout.flush()
 
   def read_keyboard(self):
     def ctrl(c): return ((c) & 0x1f)
