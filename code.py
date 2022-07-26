@@ -154,6 +154,9 @@ class Editor():
         buffcol = col + self.offx
         try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
         except: pass
+
+      
+
       self.screen.clrtoeol()
       try: self.screen.addch('\n')
       except: pass
@@ -173,12 +176,14 @@ class Editor():
     c = -1
     while (c == -1): c = self.screen.getch()
     if c == ctrl(ord('q')): self.exit()
-    if c == ctrl(ord('n')): self.new_file()
-    if c == ctrl(ord('s')): self.save_file()
-    if c == ctrl(ord('f')): self.search()
-    if c == ctrl(ord('g')): self.find_next()
-    if c == ctrl(ord('d')): self.delete_line()
-    if c == ctrl(ord('i')): self.indent()
+    elif c == 9: [self.insert_char(ord(' ')) for i in range(4)]
+    elif c == 353: [self.delete_char() for i in range(4)]
+    elif c == ctrl(ord('n')): self.new_file()
+    elif c == ctrl(ord('s')): self.save_file()
+    elif c == ctrl(ord('f')): self.search()
+    elif c == ctrl(ord('g')): self.find_next()
+    elif c == ctrl(ord('d')): self.delete_line()
+    elif c == ctrl(ord('i')): self.indent()
     elif c == curses.KEY_HOME: self.curx = 0
     elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
     elif c == curses.KEY_LEFT: self.move_cursor(c)
