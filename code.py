@@ -144,10 +144,8 @@ class Editor():
     try: self.screen.addstr(self.ROWS, 0, status)
     except: pass
     self.screen.attron(curses.color_pair(1))
-  
+
   def print_buffer(self):
-    char_count = 0
-    last_keyword = ''
     for row in range(self.ROWS):
       buffrow = row + self.offy
       for col in range(self.COLS):
