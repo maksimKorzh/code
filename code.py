@@ -183,7 +183,7 @@ class Editor():
     elif c == ctrl(ord('f')): self.search()
     elif c == ctrl(ord('g')): self.find_next()
     elif c == ctrl(ord('d')): self.delete_line()
-    elif c == ctrl(ord('i')): self.indent()
+    elif c == ctrl(ord('t')): self.indent()
     elif c == curses.KEY_HOME: self.curx = 0
     elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
     elif c == curses.KEY_LEFT: self.move_cursor(c)

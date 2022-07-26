@@ -14,4 +14,4 @@ All it does is just edits text files, no fancy features
     Ctrl-d            delete current line
     Ctrl-f            search for a word
     Ctrl-g            find next word
-    Ctrl-i            set/remove indentation/text (format: [rows] [cols] [+/-])
+    Ctrl-t            set/remove indentation/text (format: [rows] [cols] [+/-])
