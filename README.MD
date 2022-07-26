@@ -1,5 +1,5 @@
-# Terminal based text editor for stone age
-All it does is just edits text files, no fancy features
+# Code Monkey King's code editor
+Minimalist terminal based text editor with syntax highlighting
 
 # How to try it
     git clone https://github.com/maksimKorzh/code.git
