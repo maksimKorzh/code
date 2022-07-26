@@ -8,10 +8,10 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
 from pygments import highlight
 
 COLOR_SCHEME = {
-  Token:              ('',                         ''),
-  Comment:            ('gray',                 'gray'),
+  Token:              ('gray',                 'gray'),
+  Comment:            ('black',         'brightblack'),
   Comment.Preproc:    ('magenta',     'brightmagenta'),
-  Keyword:             ('blue',                  '**'),
+  Keyword:            ('blue',                   '**'),
   Keyword.Type:       ('green',       '*brightgreen*'),
   Operator.Word:      ('**',                     '**'),
   Name.Builtin:       ('cyan',           'brightblue'),
