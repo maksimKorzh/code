@@ -154,8 +154,6 @@ class Editor():
         buffcol = col + self.offx
         try: self.screen.addch(row, col, self.buff[buffrow][buffcol])
         except: pass
-      
-
       self.screen.clrtoeol()
       try: self.screen.addch('\n')
       except: pass
@@ -233,9 +231,11 @@ class Editor():
       start_col = self.curx
       end_col = self.curx + int(indent.split()[1])
       dir = indent.split()[2]
+      try: char = indent.split()[3]
+      except: char = ''
       for row in range(start_row, end_row):
         for col in range(start_col, end_col):
-          if dir == '+': self.buff[row].insert(col, ord(' '))
+          if dir == '+': self.buff[row].insert(col, ord(char if char != '' else ' '))
           if dir == '-': del self.buff[row][self.curx]
       self.modified += 1        
     except: pass
