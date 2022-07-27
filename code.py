@@ -9,7 +9,7 @@ from pygments import highlight
 
 COLOR_SCHEME = {
   Token:              ('gray',                 'gray'),
-  Comment:            ('black',         'brightblack'),
+  Comment:            ('magenta',     'brightmagenta'),
   Comment.Preproc:    ('magenta',     'brightmagenta'),
   Keyword:            ('blue',                   '**'),
   Keyword.Type:       ('green',       '*brightgreen*'),
