@@ -194,6 +194,12 @@ class Editor():
     sys.stdout.write(print_buffer + status_bar)
     sys.stdout.flush()
 
+  def resize_window(self):
+    self.ROWS, self.COLS = self.screen.getmaxyx()
+    self.ROWS -= 1
+    self.screen.refresh()
+    self.update_screen()
+
   def read_keyboard(self):
     def ctrl(c): return ((c) & 0x1f)
     c = -1
@@ -207,6 +213,7 @@ class Editor():
     elif c == ctrl(ord('g')): self.find_next()
     elif c == ctrl(ord('d')): self.delete_line()
     elif c == ctrl(ord('t')): self.indent()
+    elif c == curses.KEY_RESIZE: self.resize_window()
     elif c == curses.KEY_HOME: self.curx = 0
     elif c == curses.KEY_END: self.curx = len(self.buff[self.cury])
     elif c == curses.KEY_LEFT: self.move_cursor(c)
@@ -222,15 +229,19 @@ class Editor():
     elif c == 545: self.skip_word(545)
     elif c == ord('\n'): self.insert_line()
     elif ctrl(c) != c: self.insert_char(c)
-    self.update_screen()
 
-  def command_prompt(self, line):
+  def clear_prompt(self, line):
     command_line = '\x1b[' + str(self.ROWS+1) + ';' + '0' + 'H'
     command_line += '\x1b[7m' + line
-    command_line += ''.join([' ' for i in range(self.COLS - 22)])
+    pos = 'Row ' + str(self.cury+1) + ', Col ' + str(self.curx+1)
+    while len(command_line) < self.COLS - len(pos) + 10: command_line += ' '
+    command_line += pos + ' '
+    command_line += '\x1b[' + str(self.ROWS+1) + ';' + '9' + 'H'
     sys.stdout.write(command_line)
     sys.stdout.flush()
-    self.screen.move(self.ROWS, 8)
+
+  def command_prompt(self, line):
+    self.clear_prompt(line)
     self.screen.refresh()
     word = ''; c = -1
     while c != 0x1b:
@@ -238,14 +249,22 @@ class Editor():
       while (c == -1): c = self.screen.getch()
       if c == 10: break
       if c == curses.KEY_BACKSPACE:
-        if self.screen.getyx()[1] > 8:
-          self.screen.move(self.ROWS, self.screen.getyx()[1]-1)
+        try:
+          if self.screen.getyx()[1] <= 1: fails # dirty hack
+          self.screen.move(self.screen.getyx()[0], self.screen.getyx()[1]-1)
           self.screen.addch(' ')
-          self.screen.move(self.ROWS, self.screen.getyx()[1]-1)
+          self.screen.move(self.screen.getyx()[0], self.screen.getyx()[1]-1)
           word = word[:len(word)-1]
-      word += chr(c)
-      if c != curses.KEY_BACKSPACE: self.screen.addch(c)
-      else: word = word[:len(word)-1]
+        except:
+          self.clear_prompt(line)
+          self.screen.move(0,1)
+          self.screen.refresh()
+          word = ''
+      if c != curses.KEY_BACKSPACE:
+        self.screen.addch(c)
+        word += chr(c)
+    self.update_screen()
+    self.screen.refresh()
     return word
 
   def indent(self):
