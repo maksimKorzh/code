@@ -243,25 +243,23 @@ class Editor():
   def command_prompt(self, line):
     self.clear_prompt(line)
     self.screen.refresh()
-    word = ''; c = -1
+    word = ''; c = -1; pos = 0
     while c != 0x1b:
       c = -1
       while (c == -1): c = self.screen.getch()
       if c == 10: break
       if c == curses.KEY_BACKSPACE:
-        try:
-          if self.screen.getyx()[1] <= 1: fails # dirty hack
-          self.screen.move(self.screen.getyx()[0], self.screen.getyx()[1]-1)
-          self.screen.addch(' ')
-          self.screen.move(self.screen.getyx()[0], self.screen.getyx()[1]-1)
-          word = word[:len(word)-1]
-        except:
-          self.clear_prompt(line)
-          self.screen.move(0,1)
-          self.screen.refresh()
-          word = ''
+        pos -= 1
+        if pos < 0: pos = 0; continue
+        sys.stdout.write('\b')
+        sys.stdout.write(' ')
+        sys.stdout.write('\b')
+        sys.stdout.flush()
+        word = word[:len(word)-1]
       if c != curses.KEY_BACKSPACE:
-        self.screen.addch(c)
+        pos += 1
+        sys.stdout.write(chr(c))
+        sys.stdout.flush()
         word += chr(c)
     self.update_screen()
     self.screen.refresh()
